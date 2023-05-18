@@ -91,20 +91,25 @@ while True:
                         id_set_counter.add(adv.mac)
 
                     except:
-                        file = open('log.txt')
-                        print('Error while connecting to the bluetooth device or reading data.')
+                        log = open('log.txt', 'a')
+                        log.write('Error while connecting to the bluetooth device or reading data.\n')
+                        log.close()
                     if connection:
                         connection.disconnect()
                         if not bluetooth.isscanning():
                             bluetooth.start_scan(scan_time)
                 else:
                     id_set.remove(adv.mac)
-                    print('Someone might be pretending to be a hive')
+                    log = open('log.txt', 'a')
+                    log.write('Someone might be pretending to be a hive\n')
+                    log.close()
 
         if len(id_set_counter) == len(id_set):
             id_set_counter = set() 
             no_contact_count = 0
-            print('All hives are good!')
+            log = open('log.txt', 'a')
+            log.write('All hives are good!\n')
+            log.close()
             hive_contact = True
             bluetooth.stop_scan()
     
@@ -112,10 +117,14 @@ while True:
         no_contact_count += 1
 
         if no_contact_count < max_no_contact:
-            print('Could not find all hives. Trying again...')
+            log = open('log.txt', 'a')
+            log.write('Could not find all hives. Trying again...\n')
+            log.close()
             bluetooth.start_scan(scan_time)
 
         else:
-            print('some hives are missing')
+            log = open('log.txt', 'a')
+            log.write('some hives are missing\n')
+            log.close()
             no_contact_count = 0
             hive_contact = True
