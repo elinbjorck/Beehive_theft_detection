@@ -91,7 +91,6 @@ while True:
                         id_set_counter.add(adv.mac)
 
                     except:
-                        file = open('data.txt')
                         print('Error while connecting to the bluetooth device or reading data.')
                     if connection:
                         connection.disconnect()
