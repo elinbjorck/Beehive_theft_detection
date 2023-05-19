@@ -17,8 +17,6 @@ no_contact_count = 0
 max_no_contact = 5
 
 pycom.heartbeat(False)
-bluetooth = Bluetooth()
-pycom.rgbled(0x550000)  # Red
 
 rtc = machine.RTC()
 
@@ -26,25 +24,28 @@ def log_event(event_description, event_time):
     year, month, day, hour, minute, second, _, _ = event_time
     time_stamp = '[{year}/{month}/{day}|{hour}:{minute}:{second}]'.format(year = year, month = month, day = day, hour = hour, minute = minute, second = second)
     log = open('log.txt', 'a')
-    log.write('{time_stamp} {event_description}\n'.format(time_stamp = time_stamp, event_description = event_description))
+    log.write('{time_stamp}\t{event_description}\n'.format(time_stamp = time_stamp, event_description = event_description))
     log.close()
-    print('{time_stamp} {event_description}'.format(time_stamp = time_stamp, event_description = event_description))
+    print('{time_stamp}\t{event_description}'.format(time_stamp = time_stamp, event_description = event_description))
 
 log_event('Rebooted', time.localtime())
-
-
 
 log_event('Connecting to wifi', time.localtime())
 
 wlan = WLAN(mode = WLAN.STA)
 wlan.connect(ssid = 'bee_fi', auth = (WLAN.WPA2, 'beesarecool'))
+
 while not wlan.isconnected():
     machine.idle()
+
 log_event('wifi connected!', time.localtime())
 
 rtc.ntp_sync('pool.ntp.org')
 
+bluetooth = Bluetooth()
 bluetooth.start_scan(-1)
+
+
 log_event('Locating {nr_of_hives} hives'.format(nr_of_hives = nr_of_hives), time.localtime())
 while len(id_set) < nr_of_hives:
     adv = bluetooth.get_adv()
@@ -69,7 +70,7 @@ for mac in id_set:
     if connection:
         connection.disconnect()
 
-print('Located correct number of hives. Saved mac-adresses.')    
+log_event('Located all hives and saved mac-adresses.', time.localtime())    
 bluetooth.stop_scan()
 
 while True:
@@ -83,7 +84,6 @@ while True:
         machine.sleep((wait_time - adv_time) * 1000)
 
         bluetooth = Bluetooth()
-        bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=connection_callback)
         bluetooth.start_scan(scan_time)
         hive_contact = False
 
