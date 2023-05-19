@@ -3,7 +3,7 @@ from network import Bluetooth
 import machine
 import time
 
-nr_of_hives = 2
+nr_of_hives = 1
 id_set = set()
 id_set_counter = set()
 
@@ -27,7 +27,6 @@ def connection_callback (bt_o):
 
     elif events & Bluetooth.CLIENT_DISCONNECTED:
         pycom.rgbled(0x550000)  # Red
-
 
 bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=connection_callback)
 bluetooth.start_scan(-1)
