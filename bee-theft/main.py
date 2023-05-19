@@ -22,15 +22,6 @@ pycom.rgbled(0x550000)  # Red
 
 rtc = machine.RTC()
 
-def connection_callback (bt_o):
-    events = bt_o.events()   # this method returns the flags and clears the internal registry
-
-    if events & Bluetooth.CLIENT_CONNECTED:
-        pycom.rgbled(0x005500)  # green
-
-    elif events & Bluetooth.CLIENT_DISCONNECTED:
-        pycom.rgbled(0x550000)  # Red
-
 def log_event(event_description, event_time):
     year, month, day, hour, minute, second, _, _ = event_time
     time_stamp = '[{year}/{month}/{day}|{hour}:{minute}:{second}]'.format(year = year, month = month, day = day, hour = hour, minute = minute, second = second)
@@ -53,7 +44,6 @@ log_event('wifi connected!', time.localtime())
 
 rtc.ntp_sync('pool.ntp.org')
 
-bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=connection_callback)
 bluetooth.start_scan(-1)
 log_event('Locating {nr_of_hives} hives'.format(nr_of_hives = nr_of_hives), time.localtime())
 while len(id_set) < nr_of_hives:
@@ -85,16 +75,12 @@ bluetooth.stop_scan()
 while True:
 
     if hive_contact:
-        pycom.rgbled(0x000055)
         bluetooth.set_advertisement(name = "guard_bee", manufacturer_data = "fipy", service_data = wait_time.to_bytes(4, 'big'))
 
         bluetooth.advertise(True)
         time.sleep(adv_time)
         bluetooth.advertise(False)
-
-        pycom.rgbled(0x000000) #off
         machine.sleep((wait_time - adv_time) * 1000)
-        pycom.rgbled(0x550000) #red
 
         bluetooth = Bluetooth()
         bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=connection_callback)
