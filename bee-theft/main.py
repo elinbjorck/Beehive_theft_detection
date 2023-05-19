@@ -2,13 +2,14 @@ import pycom
 from network import Bluetooth
 import machine
 import time
+from network import WLAN
 
 nr_of_hives = 1
 id_set = set()
 id_set_counter = set()
 
 wait_time = 10
-adv_time = 3
+adv_time = 2
 scan_time = 5
 
 hive_contact = False
@@ -18,6 +19,8 @@ max_no_contact = 5
 pycom.heartbeat(False)
 bluetooth = Bluetooth()
 pycom.rgbled(0x550000)  # Red
+
+rtc = machine.RTC()
 
 def connection_callback (bt_o):
     events = bt_o.events()   # this method returns the flags and clears the internal registry
@@ -29,20 +32,37 @@ def connection_callback (bt_o):
         pycom.rgbled(0x550000)  # Red
 
 def log_event(event_description, event_time):
+    year, month, day, hour, minute, second, _, _ = event_time
+    time_stamp = '[{year}/{month}/{day}|{hour}:{minute}:{second}]'.format(year = year, month = month, day = day, hour = hour, minute = minute, second = second)
     log = open('log.txt', 'a')
-    log.write("{event_time} {event_description}\n".format(event_description = event_description, event_time = event_time))
-    print("{event_time} {event_description}".format(event_description = event_description, event_time = event_time))
+    log.write('{time_stamp} {event_description}\n'.format(time_stamp = time_stamp, event_description = event_description))
     log.close()
+    print('{time_stamp} {event_description}'.format(time_stamp = time_stamp, event_description = event_description))
+
+log_event('Rebooted', time.localtime())
+
+
+
+log_event('Connecting to wifi', time.localtime())
+
+wlan = WLAN(mode = WLAN.STA)
+wlan.connect(ssid = 'bee_fi', auth = (WLAN.WPA2, 'beesarecool'))
+while not wlan.isconnected():
+    machine.idle()
+log_event('wifi connected!', time.localtime())
+
+rtc.ntp_sync('pool.ntp.org')
 
 bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=connection_callback)
 bluetooth.start_scan(-1)
-
+log_event('Locating {nr_of_hives} hives'.format(nr_of_hives = nr_of_hives), time.localtime())
 while len(id_set) < nr_of_hives:
     adv = bluetooth.get_adv()
 
     if adv:
 
         if bluetooth.resolve_adv_data(adv.data, bluetooth.ADV_NAME_CMPL) == 'bee_hive':
+            log_event('foud hive! mac: {mac}'.format(mac = adv.mac), time.localtime())
             id_set.add(adv.mac)
     else:
         time.sleep(0.5)
@@ -91,6 +111,8 @@ while True:
 
                 if len(id_set) == nr_of_hives:
                     connection = None
+                    log_event('connecting to mac: {mac}'.format(mac = adv.mac), time.localtime())
+
                     try:
                         connection = bluetooth.connect(adv.mac)
                         id_set_counter.add(adv.mac)
@@ -108,7 +130,7 @@ while True:
         if len(id_set_counter) == len(id_set):
             id_set_counter = set() 
             no_contact_count = 0
-            log_event('All hives are good!\n', time.localtime())
+            log_event('All hives are good!', time.localtime())
 
             hive_contact = True
             bluetooth.stop_scan()
