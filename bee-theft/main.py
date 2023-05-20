@@ -32,17 +32,18 @@ log_event('Rebooted', time.localtime())
 
 log_event('Connecting to wifi', time.localtime())
 
-wlan = WLAN(mode = WLAN.STA)
-wlan.connect(ssid = 'bee_fi', auth = (WLAN.WPA2, 'beesarecool'))
+# wlan = WLAN(mode = WLAN.STA)
+# wlan.connect(ssid = 'bee_fi', auth = (WLAN.WPA2, 'beesarecool'))
 
-while not wlan.isconnected():
-    machine.idle()
+# while not wlan.isconnected():
+#     machine.idle()
 
-log_event('wifi connected!', time.localtime())
+# log_event('wifi connected!', time.localtime())
 
-rtc.ntp_sync('pool.ntp.org')
+# rtc.ntp_sync('pool.ntp.org')
 
 bluetooth = Bluetooth()
+bluetooth.init(antenna = bluetooth.EXT_ANT)
 bluetooth.start_scan(-1)
 
 
@@ -84,6 +85,7 @@ while True:
         machine.sleep((wait_time - adv_time) * 1000)
 
         bluetooth = Bluetooth()
+        bluetooth.init(antenna = bluetooth.EXT_ANT)
         bluetooth.start_scan(scan_time)
         hive_contact = False
 
