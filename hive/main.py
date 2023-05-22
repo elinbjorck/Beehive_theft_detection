@@ -23,35 +23,35 @@ def connection_callback (bt_o):
 while True:
 
     if guard_contact:
-        print('guard contact')
+        # print('guard contact')
         bluetooth.advertise(False)
         advertising = False
         bluetooth.start_scan(5)
         guard_contact = False
 
     elif bluetooth.isscanning():
-        print('scanning after timing from guard')
+        # print('scanning after timing from guard')
         adv = bluetooth.get_adv()
 
         if adv:
             print(bluetooth.resolve_adv_data(adv.data, bluetooth.ADV_NAME_CMPL))
 
             if bluetooth.resolve_adv_data(adv.data, bluetooth.ADV_NAME_CMPL) == 'guard_bee':
-                print('found it')
+                # print('found it')
                 wait_time = int.from_bytes(bluetooth.resolve_adv_data(adv.data, bluetooth.ADV_SERVICE_DATA), 'big')
                 bluetooth.stop_scan()
 
     elif wait_time:
-        print('going to sleep')
+        # print('going to sleep')
         machine.sleep(wait_time * 1000)
-        print('woke up!')
+        # print('woke up!')
         wait_time = None
 
     elif not advertising:
         bluetooth = Bluetooth()
         bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=connection_callback)
         
-        print('advertising!')
+        # print('advertising!')
 
         bluetooth.set_advertisement(name = "bee_hive", manufacturer_data = "fipy")
         bluetooth.advertise(True)

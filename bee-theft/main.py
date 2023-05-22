@@ -38,11 +38,12 @@ for mac in id_set:
         hive_contact = True
 
     except:
-        print('Error while connecting to the bluetooth device or reading data.')
+        # print('Error while connecting to the bluetooth device or reading data.')
+        continue
     if connection:
         connection.disconnect()
 
-print('Located correct number of hives. Saved mac-adresses.')    
+# print('Located correct number of hives. Saved mac-adresses.')    
 bluetooth.stop_scan()
 
 while True:
@@ -57,6 +58,7 @@ while True:
         machine.sleep((wait_time - adv_time) * 1000)
 
         bluetooth = Bluetooth()
+
         bluetooth.start_scan(scan_time)
         hive_contact = False
 
@@ -75,19 +77,20 @@ while True:
                         id_set_counter.add(adv.mac)
 
                     except:
-                        print('Error while connecting to the bluetooth device or reading data.')
+                        # print('Error while connecting to the bluetooth device or reading data.')
+                        continue
                     if connection:
                         connection.disconnect()
                         if not bluetooth.isscanning():
                             bluetooth.start_scan(scan_time)
                 else:
                     id_set.remove(adv.mac)
-                    print('Someone might be pretending to be a hive')
+                    # print('Someone might be pretending to be a hive')
 
         if len(id_set_counter) == len(id_set):
             id_set_counter = set() 
             no_contact_count = 0
-            print('All hives are good!')
+            # print('All hives are good!')
             hive_contact = True
             bluetooth.stop_scan()
     
@@ -95,10 +98,10 @@ while True:
         no_contact_count += 1
 
         if no_contact_count < max_no_contact:
-            print('Could not find all hives. Trying again...')
+            # print('Could not find all hives. Trying again...')
             bluetooth.start_scan(scan_time)
 
         else:
-            print('some hives are missing')
+            # print('some hives are missing')
             no_contact_count = 0
             hive_contact = True
