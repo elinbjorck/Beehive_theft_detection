@@ -2,7 +2,6 @@ import pycom
 from network import Bluetooth
 import machine
 import time
-from network import WLAN
 
 nr_of_hives = 1
 id_set = set()
@@ -18,29 +17,15 @@ max_no_contact = 5
 
 pycom.heartbeat(False)
 
-rtc = machine.RTC()
-
 def log_event(event_description, event_time):
     year, month, day, hour, minute, second, _, _ = event_time
-    time_stamp = '[{year}/{month}/{day}|{hour}:{minute}:{second}]'.format(year = year, month = month, day = day, hour = hour, minute = minute, second = second)
+    time_stamp = '[{hour}:{minute}:{second}]'.format(year = year, month = month, day = day, hour = hour, minute = minute, second = second)
     log = open('log.txt', 'a')
     log.write('{time_stamp}\t{event_description}\n'.format(time_stamp = time_stamp, event_description = event_description))
     log.close()
-    print('{time_stamp}\t{event_description}'.format(time_stamp = time_stamp, event_description = event_description))
+    print(event_description)
 
 log_event('Rebooted', time.localtime())
-
-log_event('Connecting to wifi', time.localtime())
-
-wlan = WLAN(mode = WLAN.STA)
-wlan.connect(ssid = 'bee_fi', auth = (WLAN.WPA2, 'beesarecool'))
-
-while not wlan.isconnected():
-    machine.idle()
-
-log_event('wifi connected!', time.localtime())
-
-rtc.ntp_sync('pool.ntp.org')
 
 bluetooth = Bluetooth()
 bluetooth.start_scan(-1)
@@ -66,7 +51,7 @@ for mac in id_set:
         hive_contact = True
 
     except:
-        print('Error while connecting to the bluetooth device or reading data.')
+        log_event('Error while connecting to the bluetooth device or reading data.', time.localtime())
     if connection:
         connection.disconnect()
 
@@ -107,8 +92,7 @@ while True:
                         log_event('Error while connecting to the bluetooth device or reading data.', time.localtime())
                     if connection:
                         connection.disconnect()
-                        if not bluetooth.isscanning():
-                            bluetooth.start_scan(scan_time)
+                        
                 else:
                     id_set.remove(adv.mac)
                     log_event('Someone might be pretending to be a hive', time.localtime())

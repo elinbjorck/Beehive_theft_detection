@@ -2,7 +2,6 @@ import pycom
 from network import Bluetooth
 import time
 import machine
-from network import WLAN
 
 pycom.heartbeat(False)
 
@@ -10,38 +9,25 @@ wait_time = None
 guard_contact = False
 advertising = False
 
-bluetooth = Bluetooth()
-rtc = machine.RTC()
-
 def connection_callback (bt_o):
     global guard_contact
     events = bt_o.events()   # this method returns the flags and clears the internal registry
     if events & Bluetooth.CLIENT_DISCONNECTED:
         guard_contact = True
 
-
 def log_event(event_description, event_time):
     year, month, day, hour, minute, second, _, _ = event_time
-    time_stamp = '[{year}/{month}/{day}|{hour}:{minute}:{second}]'.format(year = year, month = month, day = day, hour = hour, minute = minute, second = second)
+    time_stamp = '[{hour}:{minute}:{second}]'.format(year = year, month = month, day = day, hour = hour, minute = minute, second = second)
     log = open('log.txt', 'a')
     log.write('{time_stamp}\t{event_description}\n'.format(time_stamp = time_stamp, event_description = event_description))
     log.close()
-    print('{time_stamp}\t{event_description}'.format(time_stamp = time_stamp, event_description = event_description))
 
 log_event('Rebooted', time.localtime())
 
-log_event('Connecting to wifi', time.localtime())
-
-wlan = WLAN(mode = WLAN.STA)
-wlan.connect(ssid = 'bee_fi', auth = (WLAN.WPA2, 'beesarecool'))
-while not wlan.isconnected():
-    machine.idle()
-log_event('wifi connected!', time.localtime())
-
-rtc.ntp_sync('pool.ntp.org')
-
 # alive_message = bluetooth.service(b'0000000000000000')
 # alive_message.characteristic(uuid = '0000000000000001', value = b'Im OK')
+
+bluetooth = Bluetooth()
 while True:
 
     if guard_contact:
