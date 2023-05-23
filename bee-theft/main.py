@@ -7,7 +7,7 @@ nr_of_hives = 1
 id_set = set()
 id_set_counter = set()
 
-wait_time = 10
+wait_time = 80
 adv_time = 2
 scan_time = 5
 
@@ -23,11 +23,11 @@ def log_event(event_description, event_time):
     log = open('log.txt', 'a')
     log.write('{time_stamp}\t{event_description}\n'.format(time_stamp = time_stamp, event_description = event_description))
     log.close()
-    print(event_description)
 
 log_event('Rebooted', time.localtime())
 
 bluetooth = Bluetooth()
+bluetooth.init()
 bluetooth.start_scan(-1)
 
 
@@ -68,7 +68,8 @@ while True:
         bluetooth.advertise(False)
         machine.sleep((wait_time - adv_time) * 1000)
 
-        bluetooth = Bluetooth()
+        bluetooth.deinit()
+        bluetooth.init()
         bluetooth.start_scan(scan_time)
         hive_contact = False
 

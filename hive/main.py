@@ -28,16 +28,17 @@ log_event('Rebooted', time.localtime())
 # alive_message.characteristic(uuid = '0000000000000001', value = b'Im OK')
 
 bluetooth = Bluetooth()
+bluetooth.init()
 while True:
 
     if guard_contact:
         bluetooth.advertise(False)
         advertising = False
+        log_event('scanning for timing from guard', time.localtime())
         bluetooth.start_scan(5)
         guard_contact = False
 
     elif bluetooth.isscanning():
-        log_event('scanning for timing from guard', time.localtime())
         adv = bluetooth.get_adv()
 
         if adv:
@@ -54,7 +55,8 @@ while True:
         wait_time = None
 
     elif not advertising:
-        bluetooth = Bluetooth()
+        bluetooth.deinit()
+        bluetooth.init()
         bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=connection_callback)
         
         log_event('advertising!', time.localtime())
