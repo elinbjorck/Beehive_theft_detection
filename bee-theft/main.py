@@ -7,7 +7,7 @@ nr_of_hives = 1
 id_set = set()
 id_set_counter = set()
 
-wait_time = 60
+wait_time = 10
 adv_time = 3
 scan_time = 5
 
@@ -17,7 +17,15 @@ max_no_contact = 5
 
 pycom.heartbeat(False)
 bluetooth = Bluetooth()
+bluetooth.init()
 pycom.rgbled(0x550000)  # Red
+
+def log_event(event_description, event_time):
+    year, month, day, hour, minute, second, _, _ = event_time
+    time_stamp = '[{year}/{month}/{day}|{hour}:{minute}:{second}]'.format(year = year, month = month, day = day, hour = hour, minute = minute, second = second)
+    log = open('log.txt', 'a')
+    log.write('{time_stamp}\t{event_description}\n'.format(time_stamp = time_stamp, event_description = event_description))
+    log.close()
 
 def connection_callback (bt_o):
     events = bt_o.events()   # this method returns the flags and clears the internal registry
@@ -49,11 +57,11 @@ for mac in id_set:
         hive_contact = True
 
     except:
-        print('Error while connecting to the bluetooth device or reading data.')
+        log_event('Error while connecting to the bluetooth device or reading data.', time.localtime())
     if connection:
         connection.disconnect()
 
-print('Located correct number of hives. Saved mac-adresses.')    
+log_event('Located correct number of hives. Saved mac-adresses.', time.localtime())    
 bluetooth.stop_scan()
 
 while True:
@@ -70,7 +78,8 @@ while True:
         machine.sleep((wait_time - adv_time) * 1000)
         pycom.rgbled(0x550000) #red
 
-        bluetooth = Bluetooth()
+        bluetooth.deinit()
+        bluetooth.init()
         bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=connection_callback)
         bluetooth.start_scan(scan_time)
         hive_contact = False
@@ -90,19 +99,19 @@ while True:
                         id_set_counter.add(adv.mac)
 
                     except:
-                        print('Error while connecting to the bluetooth device or reading data.')
+                        log_event('Error while connecting to the bluetooth device or reading data.', time.localtime())
                     if connection:
                         connection.disconnect()
                         if not bluetooth.isscanning():
                             bluetooth.start_scan(scan_time)
                 else:
                     id_set.remove(adv.mac)
-                    print('Someone might be pretending to be a hive')
+                    log_event('Someone might be pretending to be a hive', time.localtime())
 
         if len(id_set_counter) == len(id_set):
             id_set_counter = set() 
             no_contact_count = 0
-            print('All hives are good!')
+            log_event('All hives are good!', time.localtime())
             hive_contact = True
             bluetooth.stop_scan()
     
@@ -110,10 +119,10 @@ while True:
         no_contact_count += 1
 
         if no_contact_count < max_no_contact:
-            print('Could not find all hives. Trying again...')
+            log_event('Could not find all hives. Trying again...', time.localtime())
             bluetooth.start_scan(scan_time)
 
         else:
-            print('some hives are missing')
+            log_event('some hives are missing', time.localtime())
             no_contact_count = 0
             hive_contact = True

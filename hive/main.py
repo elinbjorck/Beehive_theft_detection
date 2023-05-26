@@ -11,6 +11,7 @@ guard_contact = False
 advertising = False
 
 bluetooth = Bluetooth()
+bluetooth.init()
 
 def connection_callback (bt_o):
     global guard_contact
@@ -54,7 +55,8 @@ while True:
         wait_time = None
 
     elif not advertising:
-        bluetooth = Bluetooth()
+        bluetooth.deinit()
+        bluetooth.init()
         bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=connection_callback)
         
         print('advertising!')
