@@ -22,7 +22,7 @@ pycom.rgbled(0x550000)  # Red
 
 def log_event(event_description, event_time):
     year, month, day, hour, minute, second, _, _ = event_time
-    time_stamp = '[{year}/{month}/{day}|{hour}:{minute}:{second}]'.format(year = year, month = month, day = day, hour = hour, minute = minute, second = second)
+    time_stamp = '[{hour}:{minute}:{second}]'.format(year = year, month = month, day = day, hour = hour, minute = minute, second = second)
     log = open('log.txt', 'a')
     log.write('{time_stamp}\t{event_description}\n'.format(time_stamp = time_stamp, event_description = event_description))
     log.close()
